@@ -27,7 +27,7 @@ async function protectRoute(req, res, next)
         next();
     }
     catch(err) {
-        console.log("error in protect route");
+        console.log(`error in protect route ${err.message}`);
         res.status(401).json({ error: "Something went wrong" });
     }
 }

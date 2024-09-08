@@ -106,7 +106,7 @@ async function updateUser(req, res)
         const user = await userModel.findById(userId);
 
         if (!user) {
-            return res.status(400).json({ error: "User not found" });
+            return res.status(404).json({ error: "User not found" });
         }
 
         if ( (!currentPassword && newPassword) || (!newPassword && currentPassword) ) {
@@ -115,7 +115,7 @@ async function updateUser(req, res)
 
         if (currentPassword && newPassword)
         {
-            const isMatch = bcrypt.compare(currentPassword, user.password);
+            const isMatch = await bcrypt.compare(currentPassword, user.password);
 
             if (!isMatch) {
                 return res.status(400).json({ error: "Incorrect password" });
@@ -158,8 +158,8 @@ async function updateUser(req, res)
         user.email = email || user.email;
         user.bio = bio || user.bio;
         user.link = link || user.link;
-        user.profileImg = profileImg || user.profileImg;
-        user.coverImg = coverImg || user.coverImg;
+        user.dp = profileImg || user.dp;
+        user.coverImage = coverImg || user.coverImage;
 
         await user.save();
 
@@ -172,7 +172,6 @@ async function updateUser(req, res)
         res.status(401).json({ error: "Something went wrong" });
     }
 }
-
 
 
 export { getUserProfile, followOrUnfollowUser, getSuggestedUsers, updateUser }
