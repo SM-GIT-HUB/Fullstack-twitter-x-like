@@ -20,22 +20,22 @@ async function signup(req, res)
         const newUser = await userModel.create({
             username,
             fullName,
-            email,
+            email: email? email : "abc@gmail.com",
             password: hashedPassword
         })
 
         if (newUser)
         {
             generateToken(newUser._id, res);
-            res.status(200).json({ _id: newUser._id, username, fullName, email });
+            res.status(200).json({ _id: newUser._id, username, fullName, email: newUser.email });
         }
         else {
-            res.status(400).json({ error: "Couldn't signup" });
+            res.status(500).json({ error: "Couldn't signup" });
         }
     }
     catch(err) {
         console.log(`error in signup: ${err.message}`);
-        res.status(401).json({ error: "Something went wrong" });
+        res.status(500).json({ error: "Something went wrong" });
     }
 }
 
@@ -55,11 +55,11 @@ async function login(req, res)
         generateToken(user._id, res);
         user.password = undefined;
 
-        res.status(200).json({ user });
+        res.status(200).json( user );
     }
     catch(err) {
         console.log(`error in login: ${err.message}`);
-        res.status(401).json({ error: "Something went wrong" });
+        res.status(500).json({ error: "Something went wrong" });
     }
 }
 
@@ -84,7 +84,7 @@ function getMe(req, res)
     }
     catch(err) {
         console.log(`error in getMe ${err.message}`);
-        res.status(401).json({ error: "Something went wrong" });
+        res.status(500).json({ error: "Something went wrong" });
     }
 }
 

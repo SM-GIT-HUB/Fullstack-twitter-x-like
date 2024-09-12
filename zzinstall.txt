@@ -1,6 +1,19 @@
 --frontend
 
-npm create vite@latest .
+npm create vite@latest . (
+    react, js
+)
+
+npm install -D tailwindcss postcss autoprefixer
+npx tailwindcss init -p
+
+npm i -D daisyui@latest
+
+npm i react-router-dom react-icons
+
+npm i @tanstack/react-query
+
+npm i react-hot-toast
 
 
 

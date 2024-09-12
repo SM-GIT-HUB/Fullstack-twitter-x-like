@@ -8,18 +8,46 @@ import { FaUser } from "react-icons/fa"
 import { MdPassword } from "react-icons/md"
 import { MdDriveFileRenameOutline } from "react-icons/md"
 
+import { useMutation, useQueryClient } from "@tanstack/react-query"
+import axios from "axios"
+import toast from "react-hot-toast"
+
 function SignUpPage()
 {
+	const queryClient = useQueryClient();
+
 	const [formData, setFormData] = useState({
 		email: "",
 		username: "",
 		fullName: "",
 		password: "",
+	})
+
+	const { mutate: signup, isPending } = useMutation({
+		mutationFn: async(formData) => {
+			try {
+				const response = await axios.post('/api/auth/signup', formData);
+				const data = response.data;
+				console.log(data);
+				toast.success("Your account is created");
+				
+				queryClient.invalidateQueries({ queryKey: ['authUser'] });
+			}
+			catch(err) {
+				console.log(err);
+				if (err.response) {
+					toast.error(err.response.data.error);
+				}
+				else
+					toast.error(err.message);
+			}
+		}
 	});
 
 	function handleSubmit(e)
     {
 		e.preventDefault();
+		signup(formData);
 	}
 
 	function handleInputChange(e)
@@ -27,7 +55,6 @@ function SignUpPage()
 		setFormData({ ...formData, [e.target.name]: e.target.value });
 	}
 
-	const isError = false;
 
 	return (
 		<div className='max-w-screen-xl mx-auto flex h-screen px-10'>
@@ -84,8 +111,11 @@ function SignUpPage()
 							value={formData.password}
 						/>
 					</label>
-					<button className='btn rounded-full btn-primary text-white'>Sign up</button>
-					{isError && <p className='text-red-500'>Something went wrong</p>}
+					<button className='btn rounded-full btn-primary text-white'>
+						{
+							isPending? <div className="loading loading-spinner"></div> : "Sign up"
+						}
+					</button>
 				</form>
 				<div className='flex flex-col lg:w-2/3 gap-2 mt-4'>
 					<p className='text-white text-lg'>Already have an account?</p>

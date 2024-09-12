@@ -5,14 +5,35 @@ import { IoNotifications } from "react-icons/io5"
 import { FaUser } from "react-icons/fa"
 import { Link } from "react-router-dom"
 import { BiLogOut } from "react-icons/bi"
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import toast from "react-hot-toast"
+import axios from "axios"
 
 function Sidebar()
 {
-	const data = {
-		fullName: "John Doe",
-		username: "johndoe",
-		profileImg: "https://avatar.iran.liara.run/public/boy?"
-	}
+	const queryClient = useQueryClient();
+
+	const { data: authUser } = useQuery({ queryKey: ['authUser'] });
+
+	const { mutate: logout, isPending } = useMutation({
+		mutationFn: async() => {
+			try {
+				await axios.post('/api/auth/logout');
+				toast.dismiss();
+				toast.success("Logged out successfully");
+				
+				queryClient.invalidateQueries({ queryKey: ['authUser'] });
+			}
+			catch(err) {
+				toast.dismiss();
+				if (err.response) {
+					toast.error(err.response.data.error);
+				}
+				else
+					toast.error(err.message);
+			}
+		}
+	})
 
 	return (
 		<div className='md:flex-[2_2_0] w-18 max-w-52'>
@@ -42,7 +63,7 @@ function Sidebar()
 
 					<li className='flex justify-center md:justify-start'>
 						<Link
-							to={`/profile/${data?.username}`}
+							to={`/profile/${authUser?.username}`}
 							className='flex gap-3 items-center hover:bg-stone-900 transition-all rounded-full duration-300 py-2 pl-2 pr-4 max-w-fit cursor-pointer'
 						>
 							<FaUser className='w-6 h-6' />
@@ -50,24 +71,31 @@ function Sidebar()
 						</Link>
 					</li>
 				</ul>
-				{data && (
-					<Link
-						to={`/profile/${data.username}`}
-						className='mt-auto mb-10 flex gap-2 items-start transition-all duration-300 hover:bg-[#181818] py-2 px-4 rounded-full'
-					>
+				{authUser && (
+					<div className='mt-auto mb-10 flex gap-2 items-center justify-center transition-all duration-300 hover:bg-[#181818] py-2 px-4 rounded-full' >
 						<div className='avatar hidden md:inline-flex'>
 							<div className='w-8 rounded-full'>
-								<img src={data?.profileImg || "/avatar-placeholder.png"} />
+								<Link to={`/profile/${authUser.username}`}>
+								<img src={authUser?.profileImg || "https://cdn.iconscout.com/icon/free/png-512/free-user-icon-download-in-svg-png-gif-file-formats--circle-interface-pack-icons-440180.png?f=webp&w=256"} />
+								</Link>
 							</div>
 						</div>
-						<div className='flex justify-between flex-1'>
-							<div className='hidden md:block'>
-								<p className='text-white font-bold text-sm w-20 truncate'>{data?.fullName}</p>
-								<p className='text-slate-500 text-sm'>@{data?.username}</p>
+						<div className='hidden md:flex justify-between flex-1'>
+							<div>
+								<Link to={`/profile/${authUser.username}`}>
+								<p className='text-white font-bold text-sm w-20 truncate'>{authUser?.fullName}</p>
+								<p className='text-slate-500 text-sm'>@{authUser?.username}</p>
+								</Link>
 							</div>
-							<BiLogOut className='w-5 h-5 cursor-pointer' />
 						</div>
-					</Link>
+						{
+							isPending? <div className="loading loading-spinner"></div> :
+							<BiLogOut className='w-5 h-full cursor-pointer' onClick={(e) => {
+								e.preventDefault();
+								logout();
+							}}/>
+						}
+					</div>
 				)}
 			</div>
 		</div>
