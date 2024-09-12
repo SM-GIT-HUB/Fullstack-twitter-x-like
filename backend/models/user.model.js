@@ -31,15 +31,15 @@ const userSchema = new mongoose.Schema({
     },
     dp: {
         type: String,
-        default: ""
+        default: "https://plus.unsplash.com/premium_photo-1677094310956-7f88ae5f5c6b?q=80&w=1780&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
     },
     coverImage: {
         type: String,
-        default: ""
+        default: "https://images.unsplash.com/photo-1591302418462-eb55463b49d6?q=80&w=1851&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
     },
     bio: {
         type: String,
-        default: ""
+        default: "Hey there!"
     },
     link: {
         type: String,

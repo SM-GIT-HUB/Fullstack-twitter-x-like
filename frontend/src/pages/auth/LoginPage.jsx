@@ -24,11 +24,13 @@ function LoginPage()
 				const response = await axios.post('/api/auth/login', formData);
 				const data = response.data;
 				console.log(data);
+				toast.dismiss();
 				toast.success("Login successful");
 				
 				queryClient.invalidateQueries({ queryKey: ['authUser'] });
 			}
 			catch(err) {
+				toast.dismiss();
 				if (err.response) {
 					toast.error(err.response.data.error);
 				}
