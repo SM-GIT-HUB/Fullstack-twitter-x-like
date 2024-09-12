@@ -1,10 +1,25 @@
 import { Link } from "react-router-dom"
 import RightPanelSkeleton from "../skeletons/RightPanelSkeleton"
-import { USERS_FOR_RIGHT_PANEL } from "../../utils/db/dummy"
+import { useQuery, useQueryClient } from "@tanstack/react-query"
+import axios from "axios"
 
 function RightPanel()
 {
-	const isLoading = false;
+	const queryClient = useQueryClient();
+	const { data: suggestions, isPending } = useQuery({
+		queryKey: ['suggestions'],
+		queryFn: async() => {
+			try {
+				const response = await axios.get('/api/users/suggested');
+				const data = response.data;
+				queryClient.invalidateQueries({ queryKey: ['suggestions'] });
+				return data;
+			}
+			catch {
+				return "";
+			}
+		}
+	})
 
 	return (
 		<div className='hidden lg:block my-4 mx-2'>
@@ -12,7 +27,7 @@ function RightPanel()
 				<p className='font-bold'>Who to follow</p>
 				<div className='flex flex-col gap-4'>
 					{/* item */}
-					{isLoading && (
+					{isPending && (
 						<>
 							<RightPanelSkeleton />
 							<RightPanelSkeleton />
@@ -20,8 +35,8 @@ function RightPanel()
 							<RightPanelSkeleton />
 						</>
 					)}
-					{!isLoading &&
-						USERS_FOR_RIGHT_PANEL?.map((user) => (
+					{!isPending &&
+						suggestions?.map((user) => (
 							<Link
 								to={`/profile/${user.username}`}
 								className='flex items-center justify-between gap-4'
