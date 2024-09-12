@@ -33,7 +33,7 @@ function Post({ post })
 			<div className='flex gap-2 items-start p-4 border-b border-gray-700'>
 				<div className='avatar'>
 					<Link to={`/profile/${postOwner.username}`} className='w-8 rounded-full overflow-hidden'>
-						<img src={postOwner.profileImg || "/avatar-placeholder.png"} />
+						<img src={postOwner.profileImg || "https://plus.unsplash.com/premium_photo-1677094310956-7f88ae5f5c6b?q=80&w=1780&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"} />
 					</Link>
 				</div>
 				<div className='flex flex-col flex-1'>
