@@ -6,20 +6,44 @@ import { FaRegBookmark } from "react-icons/fa6"
 import { FaTrash } from "react-icons/fa"
 import { useState } from "react"
 import { Link } from "react-router-dom"
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import toast from "react-hot-toast"
+import axios from "axios"
+import LoadingSpinner from "./LoadingSpinner"
 
 function Post({ post })
 {
+	const queryClient = useQueryClient();
+	const { data: authUser } = useQuery({ queryKey: ['authUser'] });
 	const [comment, setComment] = useState("");
 	const postOwner = post.user;
 	const isLiked = false;
 
-	const isMyPost = false;
+	const isMyPost = authUser._id == post.user._id;
 
 	const formattedDate = "1h";
 
 	const isCommenting = false;
 
-	const handleDeletePost = () => {};
+	const { mutate: handleDeletePost, isPending } = useMutation({
+		mutationFn: async() => {
+			try {
+				await axios.delete(`/api/posts/${post._id}`);
+
+				toast.dismiss();
+				toast.success("Post deleted successfully");
+				queryClient.invalidateQueries({ queryKey: ['posts'] });
+			}
+			catch(err) {
+				toast.dismiss();
+				if (err.response) {
+					toast.error(err.response.data.error);
+				}
+				else
+					toast.error(err.message);
+			}
+		}
+	})
 
 	function handlePostComment(e)
     {
@@ -49,6 +73,9 @@ function Post({ post })
 						{isMyPost && (
 							<span className='flex justify-end flex-1'>
 								<FaTrash className='cursor-pointer hover:text-red-500' onClick={handleDeletePost} />
+								{
+									isPending && <LoadingSpinner/>
+								}
 							</span>
 						)}
 					</div>
@@ -88,7 +115,7 @@ function Post({ post })
 												<div className='avatar'>
 													<div className='w-8 rounded-full'>
 														<img
-															src={comment.user.profileImg || "/avatar-placeholder.png"}
+															src={comment.user.profileImg || "https://plus.unsplash.com/premium_photo-1677094310956-7f88ae5f5c6b?q=80&w=1780&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"}
 														/>
 													</div>
 												</div>
