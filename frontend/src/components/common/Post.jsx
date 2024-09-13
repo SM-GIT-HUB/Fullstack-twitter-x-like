@@ -17,7 +17,8 @@ function Post({ post })
 	const { data: authUser } = useQuery({ queryKey: ['authUser'] });
 	const [comment, setComment] = useState("");
 	const postOwner = post.user;
-	const isLiked = false;
+	
+	const isLiked = post.likes.includes(authUser._id);
 
 	const isMyPost = authUser._id == post.user._id;
 
@@ -25,14 +26,46 @@ function Post({ post })
 
 	const isCommenting = false;
 
-	const { mutate: handleDeletePost, isPending } = useMutation({
+	const { mutate: handleDeletePost, isPending: isDeleting } = useMutation({
 		mutationFn: async() => {
 			try {
 				await axios.delete(`/api/posts/${post._id}`);
 
 				toast.dismiss();
 				toast.success("Post deleted successfully");
-				queryClient.invalidateQueries({ queryKey: ['posts'] });
+
+				queryClient.setQueryData(['posts'], (oldData) => {
+					return oldData.filter((p) => {
+						return (p._id != post._id);
+					})
+				})
+			}
+			catch(err) {
+				toast.dismiss();
+				if (err.response) {
+					toast.error(err.response.data.error);
+				}
+				else
+					toast.error(err.message);
+			}
+		}
+	})
+
+	const { mutate: handleLikePost, isPending: isLiking } = useMutation({
+		mutationFn: async() => {
+			try {
+				const response = await axios.post(`/api/posts/like/${post._id}`);
+				const data = response.data;
+				
+				queryClient.setQueryData(['posts'], (oldData) => {
+					return oldData.map((p) => {
+						if (p._id == post._id) {
+							return { ...p, likes: data };
+						}
+						else
+							return p;
+					})
+				})
 			}
 			catch(err) {
 				toast.dismiss();
@@ -49,8 +82,6 @@ function Post({ post })
     {
 		e.preventDefault();
 	};
-
-	function handleLikePost(){}
 
 	return (
 		<>
@@ -74,7 +105,7 @@ function Post({ post })
 							<span className='flex justify-end flex-1'>
 								<FaTrash className='cursor-pointer hover:text-red-500' onClick={handleDeletePost} />
 								{
-									isPending && <LoadingSpinner/>
+									isDeleting && <LoadingSpinner/>
 								}
 							</span>
 						)}
@@ -158,7 +189,11 @@ function Post({ post })
 								<BiRepost className='w-6 h-6  text-slate-500 group-hover:text-green-500' />
 								<span className='text-sm text-slate-500 group-hover:text-green-500'>0</span>
 							</div>
-							<div className='flex gap-1 items-center group cursor-pointer' onClick={handleLikePost}>
+							<div className='flex gap-1 items-center group cursor-pointer' onClick={() => {
+								if (!isLiking) {
+									handleLikePost();
+								}
+							}}>
 								{/* {!isLiked && (
 									<FaRegHeart className='w-4 h-4 cursor-pointer text-slate-500 group-hover:text-pink-500' />
 								)}
@@ -166,7 +201,7 @@ function Post({ post })
                                 <FaRegHeart className={`w-4 h-4 cursor-pointer ${isLiked? "text-pink-500" : "text-slate-500 group-hover:text-pink-500"}`} />
 
 								<span
-									className={`text-sm text-slate-500 group-hover:text-pink-500 ${isLiked ? "text-pink-500" : ""}`}
+									className={`text-sm group-hover:text-pink-500 ${isLiked ? "text-pink-500" : "text-slate-500"}`}
 								>
 									{post.likes.length}
 								</span>

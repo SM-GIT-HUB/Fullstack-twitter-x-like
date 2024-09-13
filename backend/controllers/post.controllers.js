@@ -32,6 +32,11 @@ async function createPost(req, res)
             img
         })
 
+        await postModel.populate(newPost, [
+            { path: 'user', select: "-password" },
+            { path: 'comments.user', select: "-password" }
+        ])
+
         res.status(201).json( newPost );
     }
     catch(err) {
@@ -130,8 +135,9 @@ async function likeOrUnlikePost(req, res)
         {
             await post.updateOne({ $pull: { likes: userId } });
             await userModel.updateOne({ _id: userId }, { $pull: { likedPosts: id } });
-
-            res.status(200).json({ message: "Unliked the post" });
+            
+            const updatedPost = await postModel.findById(id).select("likes");
+            res.status(201).json( updatedPost.likes );
         }
         else
         {
@@ -146,7 +152,7 @@ async function likeOrUnlikePost(req, res)
                 type: 'like'
             })
 
-            res.status(201).json({ message: "Post liked" });
+            res.status(201).json( post.likes );
         }
     }
     catch(err) {

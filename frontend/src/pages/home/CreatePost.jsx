@@ -18,14 +18,16 @@ function CreatePost() {
 	const { mutate: createPost, isPending } = useMutation({
 		mutationFn: async() => {
 			try {
-				await axios.post('/api/posts/create', { text, img });
+				const response = await axios.post('/api/posts/create', { text, img });
+				const data = response.data;
 
 				toast.dismiss();
 				toast.success("Post created");
 
 				setText("");
 				setImg(null)
-				queryClient.invalidateQueries({queryKey: ['posts']});
+				
+				queryClient.setQueryData(['posts'], (oldData) => [data, ...oldData]);
 			}
 			catch(err) {
 				toast.dismiss();

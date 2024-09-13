@@ -19,7 +19,6 @@ function App() {
       try {
         const response = await axios.get('/api/auth/me');
         const data = response.data;
-        console.log(data);
         return data;
       }
       catch {

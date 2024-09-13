@@ -9,12 +9,16 @@ function useFollow()
     const { mutate: follow, isPending } = useMutation({
         mutationFn: async(userId) => {
             try {
-                await axios.post(`/api/users/follow/${userId}`);
+                const response = await axios.post(`/api/users/follow/${userId}`);
+                const data = response.data;
                 
                 Promise.all([
                     queryClient.invalidateQueries(['authUser']),
                     queryClient.invalidateQueries(['suggestions'])
                 ])
+
+                toast.dismiss();
+                toast.success(data.message);
             }
             catch(err) {
                 toast.dismiss();
