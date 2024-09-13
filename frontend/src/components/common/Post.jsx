@@ -10,6 +10,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import toast from "react-hot-toast"
 import axios from "axios"
 import LoadingSpinner from "./LoadingSpinner"
+import { formatPostDate } from "../../utils/date"
 
 function Post({ post })
 {
@@ -17,14 +18,11 @@ function Post({ post })
 	const { data: authUser } = useQuery({ queryKey: ['authUser'] });
 	const [comment, setComment] = useState("");
 	const postOwner = post.user;
-	
 	const isLiked = post.likes.includes(authUser._id);
 
 	const isMyPost = authUser._id == post.user._id;
 
-	const formattedDate = "1h";
-
-	const isCommenting = false;
+	const formattedDate = formatPostDate(post.createdAt);
 
 	const { mutate: handleDeletePost, isPending: isDeleting } = useMutation({
 		mutationFn: async() => {
@@ -78,10 +76,46 @@ function Post({ post })
 		}
 	})
 
+	const { mutate: postComment, isPending: isCommenting } = useMutation({
+		mutationFn: async() => {
+			try {
+				const response = await axios.post(`/api/posts/comment/${post._id}`, {text: comment});
+				const data = response.data;
+
+				post.comments.push(data);
+				setComment("");
+
+				queryClient.setQueryData(['posts'], (oldData) => {
+					return oldData.map((p) => {
+						if (p._id == post._id) {
+							return post;
+						}
+						else
+							return p;
+					})
+				})
+
+				toast.success("Comment added");
+			}
+			catch(err) {
+				toast.dismiss();
+				if (err.response) {
+					toast.error(err.response.data.error);
+				}
+				else
+					toast.error(err.message);
+			}
+		}
+	})
+
 	function handlePostComment(e)
     {
 		e.preventDefault();
-	};
+
+		if (!isCommenting) {
+			postComment();
+		}
+	}
 
 	return (
 		<>

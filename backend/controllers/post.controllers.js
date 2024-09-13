@@ -108,6 +108,10 @@ async function commentPost(req, res)
             type: 'comment'
         })
 
+        await postModel.populate(newComment, [
+            { path: 'user', select: "-password" }
+        ])
+
         res.status(201).json( newComment );
     }
     catch(err) {
