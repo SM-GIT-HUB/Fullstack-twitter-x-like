@@ -102,11 +102,13 @@ async function commentPost(req, res)
 
         await post.save();
 
-        await notificationModel.create({
-            from: userId,
-            to: post.user,
-            type: 'comment'
-        })
+        if (userId.toString() != post.user.toString()) {
+            await notificationModel.create({
+                from: userId,
+                to: post.user,
+                type: 'comment'
+            })
+        }
 
         await postModel.populate(newComment, [
             { path: 'user', select: "-password" }
@@ -150,11 +152,13 @@ async function likeOrUnlikePost(req, res)
             post.likes.push(userId);
             await post.save();
 
-            await notificationModel.create({
-                from: userId,
-                to: post.user,
-                type: 'like'
-            })
+            if (userId.toString() != post.user.toString()) {
+                await notificationModel.create({
+                    from: userId,
+                    to: post.user,
+                    type: 'like'
+                })
+            }
 
             res.status(201).json( post.likes );
         }

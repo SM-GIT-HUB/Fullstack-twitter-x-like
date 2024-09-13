@@ -13,7 +13,7 @@ async function getNotifications(req, res)
 
         let notifications = await notificationModel.find({ to: user._id }).populate([
             { path: "from", select: "username dp" }
-        ]).sort("createdAt")
+        ]).sort("-createdAt")
 
         for (let i = 0; i < notifications.length; i++)
         {
