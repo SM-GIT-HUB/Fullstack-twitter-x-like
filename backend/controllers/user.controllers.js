@@ -41,13 +41,14 @@ async function followOrUnfollowUser(req, res)
         }
 
         const isFollowed = currUser.following.includes(id);
+        let message = "";
 
         if (isFollowed)
         {
             await currUser.updateOne({ $pull: { following: userToModify._id } });
             await userToModify.updateOne({ $pull: { followers: currUser._id} } );
 
-            res.status(200).json({ message: "Unfollowed now" });
+            message = "Unfollowed user";
         }
         else
         {
@@ -60,8 +61,11 @@ async function followOrUnfollowUser(req, res)
                 to: userToModify._id
             })
 
-            res.status(200).json({ message: "Following now" });
+            message = "Following now";
         }
+
+        const user = await userModel.findById(req.user._id).select("following");
+        res.status(201).json({ followingList: user.following, message });
     }
     catch(err) {
         console.log(`error in followOrUnfollowUser ${err.message}`);
@@ -131,10 +135,10 @@ async function updateUser(req, res)
 
         if (profileImg)
         {
-            if (user.profileImg)
+            if (user.dp)
             {
                 //getting the id from a cloudinary image url: https://something/anything/id.png
-                await cloudinary.uploader.destroy(user.profileImg.split('/').pop().split('.')[0]);
+                await cloudinary.uploader.destroy(user.dp?.split('/').pop().split('.')[0]);
             }
             
             const uploadedResponse = await cloudinary.uploader.upload(profileImg);
@@ -143,10 +147,10 @@ async function updateUser(req, res)
         
         if (coverImg)
         {
-            if (user.coverImg)
+            if (user.coverImage)
             {
                 //getting the id from a cloudinary image url: https://something/anything/id.png
-                await cloudinary.uploader.destroy(user.coverImg.split('/').pop().split('.')[0]);
+                await cloudinary.uploader.destroy(user.coverImage?.split('/').pop().split('.')[0]);
             }
 
             const uploadedResponse = await cloudinary.uploader.upload(coverImg);

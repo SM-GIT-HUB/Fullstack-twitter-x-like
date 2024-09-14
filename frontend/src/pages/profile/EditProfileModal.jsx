@@ -1,16 +1,50 @@
+/* eslint-disable react/prop-types */
+import { useMutation, useQueryClient } from "@tanstack/react-query"
+import axios from "axios"
 import { useState } from "react"
+import toast from "react-hot-toast";
+import LoadingSpinner from "../../components/common/LoadingSpinner";
 
-function EditProfileModal()
+function EditProfileModal({ authUser })
 {
+	const queryClient = useQueryClient();
+	
 	const [formData, setFormData] = useState({
-		fullName: "",
-		username: "",
-		email: "",
-		bio: "",
-		link: "",
+		fullName: authUser.fullName,
+		username: authUser.username,
+		email: authUser.email,
+		bio: authUser.bio,
+		link: authUser.link,
 		newPassword: "",
 		currentPassword: "",
 	});
+
+	const { mutate: updateProfile, isPending: isUpdating } = useMutation({
+		mutationFn: async() => {
+			try {
+				await axios.post('/api/users/update', formData);
+				
+				Promise.all([
+					queryClient.invalidateQueries({ queryKey: ['authUser'] }),
+					queryClient.invalidateQueries({ queryKey: ['userProfile'] })
+				])
+				
+				setFormData({});
+				document.getElementById("edit_profile_modal").close();
+				
+				toast.dismiss();
+				toast.success("Profile updated");
+			}
+			catch(err) {
+				toast.dismiss();
+				if (err.response) {
+					toast.error(err.response.data.error);
+				}
+				else
+					toast.error(err.message);
+			}
+		}
+	})
 
 	function handleInputChange(e)
     {
@@ -32,7 +66,7 @@ function EditProfileModal()
 						className='flex flex-col gap-4'
 						onSubmit={(e) => {
 							e.preventDefault();
-							alert("Profile updated successfully");
+							updateProfile();
 						}}
 					>
 						<div className='flex flex-wrap gap-2'>
@@ -96,7 +130,12 @@ function EditProfileModal()
 							name='link'
 							onChange={handleInputChange}
 						/>
-						<button className='btn btn-primary rounded-full btn-sm text-white'>Update</button>
+						{
+							!isUpdating && <button className='btn btn-primary rounded-full btn-sm text-white'>Update</button>
+						}
+						{
+							isUpdating && <div className="flex items-center justify-center"><LoadingSpinner/></div>
+						}
 					</form>
 				</div>
 				<form method='dialog' className='modal-backdrop'>

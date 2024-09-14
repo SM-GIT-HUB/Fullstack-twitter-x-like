@@ -5,19 +5,21 @@ import Posts from "../../components/common/Posts"
 import ProfileHeaderSkeleton from "../../components/skeletons/ProfileHeaderSkeleton"
 import EditProfileModal from "./EditProfileModal"
 
-import { POSTS } from "../../utils/db/dummy"
-
 import { FaArrowLeft } from "react-icons/fa6"
 import { IoCalendarOutline } from "react-icons/io5"
 import { FaLink } from "react-icons/fa"
 import { MdEdit } from "react-icons/md"
-import { useQuery } from "@tanstack/react-query"
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import toast from "react-hot-toast"
 import axios from "axios"
 import { formatMemberSinceDate } from "../../utils/date"
+import useFollow from "../../hooks/useFollow"
+import LoadingSpinner from "../../components/common/LoadingSpinner"
 
 function ProfilePage()
 {
+	const queryClient = useQueryClient();
+
 	const [coverImg, setCoverImg] = useState(null);
 	const [profileImg, setProfileImg] = useState(null);
 	const [feedType, setFeedType] = useState("userPosts");
@@ -49,6 +51,32 @@ function ProfilePage()
 			}
 		}
 	})
+
+	const { mutate: updateImages, isPending: isUpdating } = useMutation({
+		mutationFn: async() => {
+			try {
+				await axios.post('/api/users/update', { profileImg, coverImg });
+				
+				Promise.all([
+					queryClient.invalidateQueries({ queryKey: ['authUser'] }),
+					queryClient.invalidateQueries({ queryKey: ['userProfile'] })
+				])
+				
+				setCoverImg(null);
+				setProfileImg(null);
+				
+				toast.success("Profile updated");
+			}
+			catch(err) {
+				toast.dismiss();
+				if (err.response) {
+					toast.error(err.response.data.error);
+				}
+				else
+					toast.error(err.message);
+			}
+		}
+	})
 	
 	const isMyProfile = authUser?._id == user?._id;
 	const joinDate = formatMemberSinceDate(user?.createdAt);
@@ -57,7 +85,20 @@ function ProfilePage()
 		refetch();
 	}, [username, refetch])
 
-	
+	const { follow, isPending } = useFollow();
+	const following = authUser?.following.includes(user?._id);
+
+	function handleFollow()
+	{
+		follow(user._id);
+
+		if (following) {
+			user.followers.pop();
+		}
+		else
+			user.followers.push({id: 12});
+	}
+
 	function handleImgChange(e, state)
     {
 		const file = e.target.files[0];
@@ -69,7 +110,7 @@ function ProfilePage()
 			}
 			reader.readAsDataURL(file);
 		}
-	};
+	}
 
 	return (
 		<>
@@ -86,7 +127,7 @@ function ProfilePage()
 								</Link>
 								<div className='flex flex-col'>
 									<p className='font-bold text-lg'>{user?.fullName}</p>
-									<span className='text-sm text-slate-500'>{POSTS?.length} posts</span>
+									<span className='text-sm text-slate-500'> posts</span>
 								</div>
 							</div>
 							{/* COVER IMG */}
@@ -120,7 +161,7 @@ function ProfilePage()
 								{/* USER AVATAR */}
 								<div className='avatar absolute -bottom-16 left-4'>
 									<div className='w-32 rounded-full relative group/avatar'>
-										<img src={profileImg || user?.dp || "/avatar-placeholder.png"} />
+										<img src={profileImg || user?.dp} />
 										{isMyProfile && (
 											<div className='absolute top-5 right-3 p-1 bg-primary rounded-full group-hover/avatar:opacity-100 opacity-0 cursor-pointer'>
 												<MdEdit
@@ -133,23 +174,27 @@ function ProfilePage()
 								</div>
 							</div>
 							<div className='flex justify-end px-4 mt-5'>
-								{isMyProfile && <EditProfileModal />}
+								{isMyProfile && <EditProfileModal authUser={authUser}/>}
 								{!isMyProfile && (
-									<button
-										className='btn btn-outline rounded-full btn-sm'
-										onClick={() => alert("Followed successfully")}
-									>
-										Follow
+									isPending? <LoadingSpinner />:
+
+									<button className='btn btn-outline rounded-full btn-sm'
+										onClick={handleFollow}>
+										{following && "Unfollow"}
+										{!following && 'Follow'}
 									</button>
 								)}
-								{(coverImg || profileImg) && (
+								{(coverImg || profileImg) && !isUpdating && (
 									<button
 										className='btn btn-primary rounded-full btn-sm text-white px-4 ml-2'
-										onClick={() => alert("Profile updated successfully")}
+										onClick={updateImages}
 									>
 										Update
 									</button>
 								)}
+								{
+									isUpdating && <LoadingSpinner/>
+								}
 							</div>
 
 							<div className='flex flex-col gap-4 mt-14 px-4'>
@@ -165,12 +210,12 @@ function ProfilePage()
 											<>
 												<FaLink className='w-3 h-3 text-slate-500' />
 												<a
-													href='https://youtube.com/@asaprogrammer_'
+													href={"https://x.com"}
 													target='_blank'
 													rel='noreferrer'
 													className='text-sm text-blue-500 hover:underline'
 												>
-													youtube.com/@asaprogrammer_
+													{user?.link}
 												</a>
 											</>
 										</div>

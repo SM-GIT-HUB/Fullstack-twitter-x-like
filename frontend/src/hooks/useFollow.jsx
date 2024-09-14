@@ -13,8 +13,10 @@ function useFollow()
                 const data = response.data;
                 
                 Promise.all([
-                    queryClient.invalidateQueries(['authUser']),
-                    queryClient.invalidateQueries(['suggestions'])
+                    queryClient.invalidateQueries({queryKey: ['suggestions']}),
+                    queryClient.setQueryData(['authUser'], (oldData) => {
+                        return { ...oldData, following: data.followingList };
+                    })
                 ])
 
                 toast.dismiss();
