@@ -1,5 +1,5 @@
-import { useRef, useState } from "react"
-import { Link } from "react-router-dom"
+import { useEffect, useRef, useState } from "react"
+import { Link, useParams } from "react-router-dom"
 
 import Posts from "../../components/common/Posts"
 import ProfileHeaderSkeleton from "../../components/skeletons/ProfileHeaderSkeleton"
@@ -11,31 +11,53 @@ import { FaArrowLeft } from "react-icons/fa6"
 import { IoCalendarOutline } from "react-icons/io5"
 import { FaLink } from "react-icons/fa"
 import { MdEdit } from "react-icons/md"
+import { useQuery } from "@tanstack/react-query"
+import toast from "react-hot-toast"
+import axios from "axios"
+import { formatMemberSinceDate } from "../../utils/date"
 
 function ProfilePage()
 {
 	const [coverImg, setCoverImg] = useState(null);
 	const [profileImg, setProfileImg] = useState(null);
-	const [feedType, setFeedType] = useState("posts");
+	const [feedType, setFeedType] = useState("userPosts");
+
+	const { username } = useParams();
 
 	const coverImgRef = useRef(null);
 	const profileImgRef = useRef(null);
+	
+	const { data: authUser } = useQuery({ queryKey: ['authUser'] });
+	
+	const { data: user, isLoading, refetch, isRefetching } = useQuery({
+		queryKey: ['userProfile'],
+		queryFn: async() => {
+			try {
+				const response = await axios.get(`/api/users/profile/${username}`);
+				const data = response.data;
 
-	const isLoading = false;
-	const isMyProfile = true;
+				return data;
+			}
+			catch(err) {
+				toast.dismiss();
+				if (err.response) {
+					toast.error(err.response.data.error);
+				}
+				else
+					toast.error(err.message);
+				return "";
+			}
+		}
+	})
+	
+	const isMyProfile = authUser?._id == user?._id;
+	const joinDate = formatMemberSinceDate(user?.createdAt);
 
-	const user = {
-		_id: "1",
-		fullName: "John Doe",
-		username: "johndoe",
-		profileImg: "https://avatar.iran.liara.run/public/boy?200",
-		coverImg: "https://avatar.iran.liara.run/public/boy?003",
-		bio: "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
-		link: "https://youtube.com/@asaprogrammer_",
-		following: ["1", "2", "3"],
-		followers: ["1", "2", "3"],
-	}
+	useEffect(() => {
+		refetch();
+	}, [username, refetch])
 
+	
 	function handleImgChange(e, state)
     {
 		const file = e.target.files[0];
@@ -53,8 +75,8 @@ function ProfilePage()
 		<>
 			<div className='flex-[4_4_0]  border-r border-gray-700 min-h-screen '>
 				{/* HEADER */}
-				{isLoading && <ProfileHeaderSkeleton />}
-				{!isLoading && !user && <p className='text-center text-lg mt-4'>User not found</p>}
+				{(isLoading || isRefetching) && <ProfileHeaderSkeleton />}
+				{(!isLoading && !isRefetching) && !user && <p className='text-center text-lg mt-4'>User not found</p>}
 				<div className='flex flex-col'>
 					{!isLoading && user && (
 						<>
@@ -70,7 +92,7 @@ function ProfilePage()
 							{/* COVER IMG */}
 							<div className='relative group/cover'>
 								<img
-									src={coverImg || user?.coverImg || "/cover.png"}
+									src={coverImg || user?.coverImage || "/cover.png"}
 									className='h-52 w-full object-cover'
 									alt='cover image'
 								/>
@@ -98,7 +120,7 @@ function ProfilePage()
 								{/* USER AVATAR */}
 								<div className='avatar absolute -bottom-16 left-4'>
 									<div className='w-32 rounded-full relative group/avatar'>
-										<img src={profileImg || user?.profileImg || "/avatar-placeholder.png"} />
+										<img src={profileImg || user?.dp || "/avatar-placeholder.png"} />
 										{isMyProfile && (
 											<div className='absolute top-5 right-3 p-1 bg-primary rounded-full group-hover/avatar:opacity-100 opacity-0 cursor-pointer'>
 												<MdEdit
@@ -155,16 +177,16 @@ function ProfilePage()
 									)}
 									<div className='flex gap-2 items-center'>
 										<IoCalendarOutline className='w-4 h-4 text-slate-500' />
-										<span className='text-sm text-slate-500'>Joined July 2021</span>
+										<span className='text-sm text-slate-500'>{joinDate}</span>
 									</div>
 								</div>
 								<div className='flex gap-2'>
 									<div className='flex gap-1 items-center'>
-										<span className='font-bold text-xs'>{user?.following.length}</span>
+										<span className='font-bold text-xs'>{user?.following?.length}</span>
 										<span className='text-slate-500 text-xs'>Following</span>
 									</div>
 									<div className='flex gap-1 items-center'>
-										<span className='font-bold text-xs'>{user?.followers.length}</span>
+										<span className='font-bold text-xs'>{user?.followers?.length}</span>
 										<span className='text-slate-500 text-xs'>Followers</span>
 									</div>
 								</div>
@@ -172,19 +194,19 @@ function ProfilePage()
 							<div className='flex w-full border-b border-gray-700 mt-4'>
 								<div
 									className='flex justify-center flex-1 p-3 hover:bg-secondary transition duration-300 relative cursor-pointer'
-									onClick={() => setFeedType("posts")}
+									onClick={() => setFeedType("userPosts")}
 								>
 									Posts
-									{feedType === "posts" && (
+									{feedType === "userPosts" && (
 										<div className='absolute bottom-0 w-10 h-1 rounded-full bg-primary' />
 									)}
 								</div>
 								<div
 									className='flex justify-center flex-1 p-3 text-slate-500 hover:bg-secondary transition duration-300 relative cursor-pointer'
-									onClick={() => setFeedType("likes")}
+									onClick={() => setFeedType("userLikes")}
 								>
 									Likes
-									{feedType === "likes" && (
+									{feedType === "userLikes" && (
 										<div className='absolute bottom-0 w-10  h-1 rounded-full bg-primary' />
 									)}
 								</div>
@@ -192,7 +214,7 @@ function ProfilePage()
 						</>
 					)}
 
-					<Posts />
+					<Posts feedType={feedType} userId={user?._id}/>
 				</div>
 			</div>
 		</>

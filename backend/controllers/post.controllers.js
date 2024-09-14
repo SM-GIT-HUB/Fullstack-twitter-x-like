@@ -219,7 +219,7 @@ async function getLikedPosts(req, res)
             return res.status(404).json({ error: "User not found" });
         }
 
-        res.status(200).json(user);
+        res.status(200).json( user.likedPosts );
     }
     catch(err) {
         console.log(`error in getLikedPosts ${err.message}`);

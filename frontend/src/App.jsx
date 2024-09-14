@@ -45,11 +45,7 @@ function App() {
             <Route path="/notifications" element={authUser? <NotificationPage/> : <Navigate to='/login'/>} />
             <Route path="/profile/:username" element={authUser? <ProfilePage/>: <Navigate to='/login'/>} />
 
-            <Route path="/:anything" element={<ErrorPage/>} />
-            <Route path="/login/:anything" element={<ErrorPage/>} />
-            <Route path="/signup/:anything" element={<ErrorPage/>} />
-            <Route path="/notifications/:anything" element={<ErrorPage/>} />
-            <Route path="/profile/:username/:anything" element={<ErrorPage/>} />
+            <Route path="*" element={<ErrorPage/>} />
           </Routes>
           
           {
