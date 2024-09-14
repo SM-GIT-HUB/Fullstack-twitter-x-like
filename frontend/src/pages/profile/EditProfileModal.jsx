@@ -1,50 +1,30 @@
 /* eslint-disable react/prop-types */
-import { useMutation, useQueryClient } from "@tanstack/react-query"
-import axios from "axios"
 import { useState } from "react"
-import toast from "react-hot-toast";
-import LoadingSpinner from "../../components/common/LoadingSpinner";
+import LoadingSpinner from "../../components/common/LoadingSpinner"
+import { useUpdateProfile } from "../../hooks/useUpdateProfile"
 
 function EditProfileModal({ authUser })
-{
-	const queryClient = useQueryClient();
-	
+{	
 	const [formData, setFormData] = useState({
 		fullName: authUser.fullName,
 		username: authUser.username,
 		email: authUser.email,
 		bio: authUser.bio,
 		link: authUser.link,
-		newPassword: "",
-		currentPassword: "",
-	});
-
-	const { mutate: updateProfile, isPending: isUpdating } = useMutation({
-		mutationFn: async() => {
-			try {
-				await axios.post('/api/users/update', formData);
-				
-				Promise.all([
-					queryClient.invalidateQueries({ queryKey: ['authUser'] }),
-					queryClient.invalidateQueries({ queryKey: ['userProfile'] })
-				])
-				
-				setFormData({});
-				document.getElementById("edit_profile_modal").close();
-				
-				toast.dismiss();
-				toast.success("Profile updated");
-			}
-			catch(err) {
-				toast.dismiss();
-				if (err.response) {
-					toast.error(err.response.data.error);
-				}
-				else
-					toast.error(err.message);
-			}
-		}
+		newPassword: null,
+		currentPassword: null,
 	})
+
+	const { updateProfile, isUpdating } = useUpdateProfile();
+
+	async function handleUpdate(e)
+	{
+		e.preventDefault();
+		await updateProfile(formData);
+
+		document.getElementById("edit_profile_modal").close();
+		setFormData({...formData, newPassword: "", currentPassword: ""})
+	}
 
 	function handleInputChange(e)
     {
@@ -64,10 +44,7 @@ function EditProfileModal({ authUser })
 					<h3 className='font-bold text-lg my-3'>Update Profile</h3>
 					<form
 						className='flex flex-col gap-4'
-						onSubmit={(e) => {
-							e.preventDefault();
-							updateProfile();
-						}}
+						onSubmit={handleUpdate}
 					>
 						<div className='flex flex-wrap gap-2'>
 							<input

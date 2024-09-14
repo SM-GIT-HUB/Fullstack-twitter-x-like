@@ -9,17 +9,16 @@ import { FaArrowLeft } from "react-icons/fa6"
 import { IoCalendarOutline } from "react-icons/io5"
 import { FaLink } from "react-icons/fa"
 import { MdEdit } from "react-icons/md"
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import { useQuery } from "@tanstack/react-query"
 import toast from "react-hot-toast"
 import axios from "axios"
 import { formatMemberSinceDate } from "../../utils/date"
 import useFollow from "../../hooks/useFollow"
 import LoadingSpinner from "../../components/common/LoadingSpinner"
+import { useUpdateProfile } from "../../hooks/useUpdateProfile"
 
 function ProfilePage()
 {
-	const queryClient = useQueryClient();
-
 	const [coverImg, setCoverImg] = useState(null);
 	const [profileImg, setProfileImg] = useState(null);
 	const [feedType, setFeedType] = useState("userPosts");
@@ -52,31 +51,16 @@ function ProfilePage()
 		}
 	})
 
-	const { mutate: updateImages, isPending: isUpdating } = useMutation({
-		mutationFn: async() => {
-			try {
-				await axios.post('/api/users/update', { profileImg, coverImg });
-				
-				Promise.all([
-					queryClient.invalidateQueries({ queryKey: ['authUser'] }),
-					queryClient.invalidateQueries({ queryKey: ['userProfile'] })
-				])
-				
-				setCoverImg(null);
-				setProfileImg(null);
-				
-				toast.success("Profile updated");
-			}
-			catch(err) {
-				toast.dismiss();
-				if (err.response) {
-					toast.error(err.response.data.error);
-				}
-				else
-					toast.error(err.message);
-			}
-		}
-	})
+	const { updateProfile, isUpdating } = useUpdateProfile();
+
+	async function handleUpdate(e)
+	{
+		e.preventDefault();
+		await updateProfile({ coverImg, profileImg });
+
+		setCoverImg(null);
+		setProfileImg(null);
+	}
 	
 	const isMyProfile = authUser?._id == user?._id;
 	const joinDate = formatMemberSinceDate(user?.createdAt);
@@ -187,7 +171,7 @@ function ProfilePage()
 								{(coverImg || profileImg) && !isUpdating && (
 									<button
 										className='btn btn-primary rounded-full btn-sm text-white px-4 ml-2'
-										onClick={updateImages}
+										onClick={handleUpdate}
 									>
 										Update
 									</button>
