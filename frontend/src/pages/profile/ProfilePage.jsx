@@ -245,7 +245,11 @@ function ProfilePage()
 						</>
 					)}
 
-					<Posts feedType={feedType} userId={user?._id}/>
+					{
+						(isLoading || isRefetching)? <div className="flex items-center justify-center">{<LoadingSpinner/>}</div> :
+						<Posts feedType={feedType} userId={user?._id}/>
+					}
+
 				</div>
 			</div>
 		</>
