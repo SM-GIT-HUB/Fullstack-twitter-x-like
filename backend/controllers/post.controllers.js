@@ -32,6 +32,9 @@ async function createPost(req, res)
             img
         })
 
+        user.posts += 1;
+        await user.save();
+
         await postModel.populate(newPost, [
             { path: 'user', select: "-password" },
             { path: 'comments.user', select: "-password" }
@@ -69,6 +72,8 @@ async function deletePost(req, res)
         }
 
         await postModel.findByIdAndDelete(post._id);
+
+        await userModel.findByIdAndUpdate(req.user._id, { $inc: { posts: -1 } });
 
         res.status(200).json({ message: "Post deleted successfully" });
     }

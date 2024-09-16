@@ -103,7 +103,7 @@ function ProfilePage()
 				{(isLoading || isRefetching) && <ProfileHeaderSkeleton />}
 				{(!isLoading && !isRefetching) && !user && <p className='text-center text-lg mt-4'>User not found</p>}
 				<div className='flex flex-col'>
-					{!isLoading && user && (
+					{!isLoading && !isRefetching && user && (
 						<>
 							<div className='flex gap-10 px-4 py-2 items-center'>
 								<Link to='/'>
@@ -111,7 +111,7 @@ function ProfilePage()
 								</Link>
 								<div className='flex flex-col'>
 									<p className='font-bold text-lg'>{user?.fullName}</p>
-									<span className='text-sm text-slate-500'> posts</span>
+									<span className='text-sm text-slate-500'>{user.posts} posts</span>
 								</div>
 							</div>
 							{/* COVER IMG */}
