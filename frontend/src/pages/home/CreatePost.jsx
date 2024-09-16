@@ -2,48 +2,26 @@ import { CiImageOn } from "react-icons/ci"
 import { BsEmojiSmileFill } from "react-icons/bs"
 import { useRef, useState } from "react"
 import { IoCloseSharp } from "react-icons/io5"
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import toast from "react-hot-toast"
-import axios from "axios"
+import { useQuery } from "@tanstack/react-query"
+import useCreatePost from "../../hooks/posts/useCreatePost"
 
 function CreatePost() {
 	const { data: authUser } = useQuery({ queryKey: ['authUser'] });
-	const queryClient = useQueryClient();
 
     const [text, setText] = useState("");
 	const [img, setImg] = useState(null);
 
 	const imgRef = useRef(null);
 
-	const { mutate: createPost, isPending } = useMutation({
-		mutationFn: async() => {
-			try {
-				const response = await axios.post('/api/posts/create', { text, img });
-				const data = response.data;
+	const { createPost, isPending } = useCreatePost();
 
-				toast.dismiss();
-				toast.success("Post created");
-
-				setText("");
-				setImg(null)
-				
-				queryClient.setQueryData(['posts'], (oldData) => [data, ...oldData]);
-			}
-			catch(err) {
-				toast.dismiss();
-				if (err.response) {
-					toast.error(err.response.data.error);
-				}
-				else
-					toast.error(err.message);
-			}
-		}
-	})
-
-	function handleSubmit(e)
+	async function handleSubmit(e)
     {
 		e.preventDefault();
-		createPost();
+		await createPost({ text, img });
+
+		setText("");
+		setImg(null);
 	}
 
 	function handleImgChange(e)

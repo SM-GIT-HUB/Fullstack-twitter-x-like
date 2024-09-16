@@ -5,45 +5,21 @@ import XSvg from "../../components/svgs/X"
 
 import { MdOutlineMail } from "react-icons/md"
 import { MdPassword } from "react-icons/md"
-import { useMutation, useQueryClient } from "@tanstack/react-query"
-import toast from "react-hot-toast"
-import axios from "axios"
+import useLogin from "../../hooks/auth/useLogin"
 
 function LoginPage()
 {
-	const queryClient = useQueryClient();
-	
 	const [formData, setFormData] = useState({
 		username: "",
 		password: "",
 	})
 
-	const { mutate: login, isPending } = useMutation({
-		mutationFn: async(formData) => {
-			try {
-				const response = await axios.post('/api/auth/login', formData);
-				const data = response.data;
-				console.log(data);
-				toast.dismiss();
-				toast.success("Login successful");
-				
-				queryClient.invalidateQueries({ queryKey: ['authUser'] });
-			}
-			catch(err) {
-				toast.dismiss();
-				if (err.response) {
-					toast.error(err.response.data.error);
-				}
-				else
-					toast.error(err.message);
-			}
-		}
-	});
+	const { login, isPending } = useLogin();
 
-	function handleSubmit(e)
+	async function handleSubmit(e)
     {
 		e.preventDefault();
-        login(formData);
+        await login(formData);
 	}
 
 	function handleInputChange(e)

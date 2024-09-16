@@ -4,14 +4,13 @@ import LoadingSpinner from "../../components/common/LoadingSpinner"
 import { IoTrashOutline } from "react-icons/io5"
 import { FaComment, FaUser } from "react-icons/fa"
 import { FaHeart } from "react-icons/fa6"
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import { useQuery } from "@tanstack/react-query"
 import toast from "react-hot-toast"
 import axios from "axios"
+import useDeleteNotifications from "../../hooks/notification/useDeleteNotifications"
 
 function NotificationPage()
 {
-	const queryClient = useQueryClient();
-
 	const { data: notifications, isLoading } = useQuery({
 		queryKey: ['notifications'],
 		queryFn: async() => {
@@ -33,50 +32,7 @@ function NotificationPage()
 		}
 	})
 
-	const { mutate: deleteNotifications } = useMutation({
-		mutationFn: async() => {
-			try {
-				await axios.delete('/api/notifications');
-				queryClient.setQueryData(['notifications'], () => []);
-
-				toast.dismiss();
-				toast.success("All notifications deleted");
-			}
-			catch(err) {
-				toast.dismiss();
-				if (err.response) {
-					toast.error(err.response.data.error);
-				}
-				else
-					toast.error(err.message);
-			}
-		}
-	})
-	
-	const { mutate: deleteNotification } = useMutation({
-		mutationFn: async(notiId) => {
-			try {
-				await axios.delete(`/api/notifications/${notiId}`);
-
-				queryClient.setQueryData(['notifications'], (oldData) => {
-					return oldData.filter((noti) => {
-						return (noti._id != notiId);
-					})
-				})
-
-				toast.dismiss();
-				toast.success("Notification deleted");
-			}
-			catch(err) {
-				toast.dismiss();
-				if (err.response) {
-					toast.error(err.response.data.error);
-				}
-				else
-					toast.error(err.message);
-			}
-		}
-	})
+	const { deleteNotifications, deleteNotification } = useDeleteNotifications();
 
 	return (
 		<>

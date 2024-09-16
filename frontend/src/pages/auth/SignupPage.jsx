@@ -8,14 +8,10 @@ import { FaUser } from "react-icons/fa"
 import { MdPassword } from "react-icons/md"
 import { MdDriveFileRenameOutline } from "react-icons/md"
 
-import { useMutation, useQueryClient } from "@tanstack/react-query"
-import axios from "axios"
-import toast from "react-hot-toast"
+import useSignup from "../../hooks/auth/useSignup"
 
 function SignUpPage()
 {
-	const queryClient = useQueryClient();
-
 	const [formData, setFormData] = useState({
 		email: "",
 		username: "",
@@ -23,31 +19,12 @@ function SignUpPage()
 		password: "",
 	})
 
-	const { mutate: signup, isPending } = useMutation({
-		mutationFn: async(formData) => {
-			try {
-				const response = await axios.post('/api/auth/signup', formData);
-				const data = response.data;
-				console.log(data);
-				toast.success("Your account is created");
-				
-				queryClient.invalidateQueries({ queryKey: ['authUser'] });
-			}
-			catch(err) {
-				console.log(err);
-				if (err.response) {
-					toast.error(err.response.data.error);
-				}
-				else
-					toast.error(err.message);
-			}
-		}
-	});
+	const { signup, isPending } = useSignup();
 
-	function handleSubmit(e)
+	async function handleSubmit(e)
     {
 		e.preventDefault();
-		signup(formData);
+		await signup(formData);
 	}
 
 	function handleInputChange(e)
@@ -129,4 +106,4 @@ function SignUpPage()
 }
 
 
-export default SignUpPage;
+export default SignUpPage
