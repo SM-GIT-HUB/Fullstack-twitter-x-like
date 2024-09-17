@@ -62,6 +62,6 @@ app.listen(PORT, () => {
 })
 
 
-setInterval(() => {
-    axios.get(process.env.ALLOW_URL + process.env.CHECKROUTE);
-}, 600000)
+// setInterval(() => {
+//     axios.get(process.env.ALLOW_URL + process.env.CHECKROUTE);
+// }, 600000)
