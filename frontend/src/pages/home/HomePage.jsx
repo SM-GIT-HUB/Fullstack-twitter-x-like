@@ -2,9 +2,12 @@ import { useState } from "react"
 
 import Posts from "../../components/common/Posts"
 import CreatePost from "./CreatePost"
+import { useQueryClient } from "@tanstack/react-query"
 
 function HomePage()
 {
+	const queryClient = useQueryClient();
+	queryClient.invalidateQueries(['searchUsers']);
 	const [feedType, setFeedType] = useState("forYou");
 
 	return (

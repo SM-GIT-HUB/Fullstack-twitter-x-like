@@ -11,6 +11,7 @@ import { Toaster } from "react-hot-toast"
 import { useQuery } from "@tanstack/react-query"
 import axios from "axios"
 import LoadingSpinner from "./components/common/LoadingSpinner"
+import Search from "./pages/search/Search"
 
 function App() {
   const { data: authUser, isLoading } = useQuery({
@@ -44,6 +45,7 @@ function App() {
             <Route path="/signup" element={!authUser? <SignupPage/> : <Navigate to='/'/>} />
             <Route path="/notifications" element={authUser? <NotificationPage/> : <Navigate to='/login'/>} />
             <Route path="/profile/:username" element={authUser? <ProfilePage/>: <Navigate to='/login'/>} />
+            <Route path="/search" element={authUser? <Search/> : <Navigate to='/login'/>} />
 
             <Route path="*" element={<ErrorPage/>} />
           </Routes>

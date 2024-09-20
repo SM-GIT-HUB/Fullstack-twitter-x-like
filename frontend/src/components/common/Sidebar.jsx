@@ -1,7 +1,7 @@
 import XSvg from "../svgs/X";
 
 import { MdHomeFilled } from "react-icons/md"
-import { IoNotifications } from "react-icons/io5"
+import { IoNotifications, IoSearchCircleOutline } from "react-icons/io5"
 import { FaUser } from "react-icons/fa"
 import { Link } from "react-router-dom"
 import { BiLogOut } from "react-icons/bi"
@@ -70,6 +70,15 @@ function Sidebar()
 							<span className='text-lg hidden md:block'>Profile</span>
 						</Link>
 					</li>
+					<li className='flex justify-center md:justify-start'>
+						<Link
+							to={`/search`}
+							className='flex gap-3 items-center hover:bg-stone-900 transition-all rounded-full duration-300 py-2 pl-2 pr-4 max-w-fit cursor-pointer'
+						>
+							<IoSearchCircleOutline className='w-7 h-8' />
+							<span className='text-lg hidden md:block'>Search</span>
+						</Link>
+					</li>
 				</ul>
 				{authUser && (
 					<div className='mt-auto mb-10 flex gap-2 items-center justify-center transition-all duration-300 hover:bg-[#181818] py-2 px-4 rounded-full' >
@@ -103,4 +112,4 @@ function Sidebar()
 }
 
 
-export default Sidebar;
+export default Sidebar

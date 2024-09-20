@@ -178,4 +178,32 @@ async function updateUser(req, res)
 }
 
 
-export { getUserProfile, followOrUnfollowUser, getSuggestedUsers, updateUser }
+async function searchUsers(req, res)
+{
+    try {
+        const userId = req.user._id;
+        let { text } = req.query;
+        text = text.toLowerCase();
+
+        const users = await userModel.aggregate([
+            { $match: { _id: { $ne: userId} } },
+            {
+                $match: { $or: [
+                    { username: { $regex: text, $options: 'i' } },
+                    { fullName: { $regex: text, $options: 'i' } }
+                ] }
+            },
+            { $sample: { size: 10 } },
+            { $project: { password: 0 } }
+        ])
+
+        res.status(200).json( users );
+    }
+    catch(err) {
+        console.log(`error in searchUsers ${err.message}`);
+        res.status(500).json({ error: "Something went wrong" });
+    }
+}
+
+
+export { getUserProfile, followOrUnfollowUser, getSuggestedUsers, updateUser, searchUsers }
