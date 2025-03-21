@@ -3,7 +3,6 @@ import cors from "cors"
 import express from "express"
 import "dotenv/config"
 import cookieParser from "cookie-parser"
-import bcrypt from "bcryptjs"
 import { v2 as cloudinary } from "cloudinary"
 
 import authRoutes from "./routes/auth.routes.js"
@@ -12,7 +11,6 @@ import postRoutes from "./routes/post.routes.js"
 import notificationRoutes from "./routes/notification.routes.js"
 
 import dbConnect from "./db/connectDb.js"
-import axios from "axios"
 
 cloudinary.config({
     cloud_name: process.env.CLOUDINARY_CLOUD,
